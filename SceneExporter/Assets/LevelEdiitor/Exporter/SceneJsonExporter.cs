@@ -49,7 +49,7 @@ public class SceneJsonExporter : EditorWindow
         foreach (var go in allObjects)
         {
             if (!go.scene.IsValid()) continue;
-            if (go.GetComponent<DoNotExport>() != null) continue; // 除外マーカー付きはスキップ
+            if (HasDoNotExportInHierarchy(go)) continue; // 親子含めて除外判定
 
             var objData = new Dictionary<string, object>
             {
@@ -79,6 +79,17 @@ public class SceneJsonExporter : EditorWindow
         File.WriteAllText(exportPath, json);
 
         EditorUtility.DisplayDialog("Export Complete", $"Scene exported to:\n{exportPath}", "OK");
+    }
+
+    bool HasDoNotExportInHierarchy(GameObject go)
+    {
+        while (go != null)
+        {
+            if (go.GetComponent<DoNotExport>() != null)
+                return true;
+            go = go.transform.parent?.gameObject;
+        }
+        return false;
     }
 
     private static Dictionary<string, float> RoundVector3(Vector3 v)
